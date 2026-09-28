@@ -1,96 +1,100 @@
-import os
-import streamlit as st
-
-from crew import build_crew
-
-
-# =========================================================
-# PAGE CONFIGURATION
-# =========================================================
-
-st.set_page_config(
-    page_title="Research Multi-Agent Team",
-    page_icon="🔬",
-    layout="wide",
-    initial_sidebar_state="expanded",
+start_research = st.button(
+    "🚀 Start Multi-Agent Research",
+    type="primary",
 )
 
+if start_research:
+    if not topic.strip():
+        st.warning("Please enter a research topic first.")
+        st.stop()
+
+    api_key = os.getenv("GROQ_API_KEY")
+
+    if not api_key:
+        try:
+            os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+        except Exception:
+            st.error(
+                "GROQ_API_KEY is missing. Add it to Streamlit Secrets."
+            )
+            st.stop()
+
+    progress = st.progress(0, text="Preparing your research team...")
+
+    try:
+        st.session_state.report = None
+
+        update_status(
+            "🔎 Researcher",
+            "The research workflow has started."
+        )
+        progress.progress(20, text="Research team assembled...")
+
+        callbacks = {
+            "researcher": lambda output: update_status("🔎 Researcher"),
+            "fact_checker": lambda output: update_status("✅ Fact Checker"),
+            "analyst": lambda output: update_status("📊 Analyst"),
+            "report_writer": lambda output: update_status("📝 Report Writer"),
+        }
+
+        try:
+            crew = build_crew(callbacks)
+        except TypeError:
+            crew = build_crew()
+
+        progress.progress(35, text="CrewAI workflow is running...")
+
+        result = crew.kickoff(
+            inputs={"topic": topic.strip()}
+        )
+
+        progress.progress(
+            100,
+            text="Research completed successfully!"
+        )
+
+        update_status(
+            "✨ All agents completed",
+            "Your final research report is ready."
+        )
+
+        st.session_state.report = str(result)
+
+    except Exception as error:
+        progress.empty()
+        st.error("Something went wrong while running the CrewAI workflow.")
+
+        with st.expander("Technical error details"):
+            st.code(str(error))
 
 # =========================================================
-# LIGHT / WHITE PRESENTATION LAYER
+# FINAL REPORT
 # =========================================================
-# IMPORTANT:
-# - Use st.html() for custom HTML/CSS.
-# - Do NOT use st.markdown() for HTML UI components.
-# This prevents HTML tags from appearing as plain text.
 
+if st.session_state.report:
+    st.divider()
+
+    st.html(
+        "<div class='report-card'>"
+        "<div class='report-title'>📄 Final Research Report</div>"
+        "</div>"
+    )
+
+    st.markdown(st.session_state.report)
+
+    st.download_button(
+        "⬇️ Download Research Report",
+        data=st.session_state.report,
+        file_name="research_report.md",
+        mime="text/markdown",
+    )
+
+# =========================================================
+# FOOTER
+# =========================================================
 
 st.html(
-    """
-    <style>
-        /* ---------- APP ---------- */
-        .stApp {
-            background: #f7f9fc;
-        }
-
-        .main .block-container {
-            max-width: 1450px;
-            padding-top: 2rem;
-            padding-bottom: 4rem;
-        }
-
-        /* ---------- SIDEBAR ---------- */
-        [data-testid="stSidebar"] {
-            background: #ffffff;
-            border-right: 1px solid #e7ebf2;
-        }
-
-        [data-testid="stSidebar"] * {
-            color: #172033;
-        }
-
-        /* ---------- HERO ---------- */
-        .hero {
-            padding: 2.6rem 3rem;
-            margin-bottom: 2rem;
-            background: linear-gradient(
-                135deg,
-                #ffffff 0%,
-                #f3f7ff 55%,
-                #f7f1ff 100%
-            );
-            border: 1px solid #e1e8f5;
-            border-radius: 28px;
-            box-shadow: 0 12px 35px rgba(30, 55, 90, 0.08);
-            text-align: center;
-        }
-
-        .hero-title {
-            font-size: clamp(2rem, 4vw, 3rem);
-            font-weight: 800;
-            letter-spacing: -0.04em;
-            color: #2563eb;
-            margin-bottom: 0.8rem;
-        }
-
-        .hero-subtitle {
-            max-width: 850px;
-            margin: 0 auto;
-            color: #64748b;
-            font-size: 1.05rem;
-            line-height: 1.7;
-        }
-
-        /* ---------- HEADINGS ---------- */
-        .section-title {
-            font-size: 1.55rem;
-            font-weight: 800;
-            color: #172033;
-            margin-bottom: 1rem;
-        }
-
-        /* ---------- CARDS ---------- */
-        .settings-card,
-        .agent-card,
-        .status-card,
-        .report-card {
+    "<div class='footer'>"
+    "Research Multi-Agent Team &nbsp;•&nbsp; CrewAI &nbsp;•&nbsp; Groq &nbsp;•&nbsp; Streamlit"
+    "</div>"
+)
