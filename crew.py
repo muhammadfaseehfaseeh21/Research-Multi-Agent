@@ -9,6 +9,7 @@ from report_writer import create_report_writer
 from tools import get_research_tool
 
 
+# Groq hosted OpenAI GPT-OSS-120B Model
 MODEL_NAME = "groq/openai/gpt-oss-120b"
 
 
@@ -22,6 +23,7 @@ def create_groq_llm():
     return LLM(
         model=MODEL_NAME,
         api_key=api_key,
+        base_url="https://api.groq.com/openai/v1",
         temperature=0.2,
     )
 
