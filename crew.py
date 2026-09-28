@@ -1,5 +1,8 @@
 import os
 
+# Disable LiteLLM prompt caching to avoid Groq unsupported property errors
+os.environ["LITELLM_DISABLE_PROMPT_CACHING"] = "True"
+
 from crewai import Agent, Crew, LLM, Process, Task
 
 from researcher import create_researcher
