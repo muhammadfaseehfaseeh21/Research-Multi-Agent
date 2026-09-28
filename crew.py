@@ -9,7 +9,6 @@ from report_writer import create_report_writer
 from tools import get_research_tool
 
 
-# Groq hosted OpenAI GPT-OSS-120B Model
 MODEL_NAME = "groq/openai/gpt-oss-120b"
 
 
@@ -94,15 +93,9 @@ def build_crew(callbacks=None):
 
     fact_check_task = Task(
         description="""
-        Carefully fact-check the research produced by the Researcher.
+        Carefully fact-check the research produced by the Researcher for the topic: {topic}.
 
-        Research topic:
-        {topic}
-
-        Researcher's findings:
-        {research_task}
-
-        Use the Web Research Tool to verify important claims.
+        Use the provided context from the research task and the Web Research Tool to verify important claims.
 
         For each important claim:
         - Determine whether it is supported
@@ -128,15 +121,9 @@ def build_crew(callbacks=None):
 
     analysis_task = Task(
         description="""
-        Analyze the verified research.
+        Analyze the verified research for the topic: {topic}.
 
-        Research topic:
-        {topic}
-
-        Verified research:
-        {fact_check_task}
-
-        Identify:
+        Review the fact-checked findings provided in the context and identify:
         - Major findings
         - Important patterns
         - Relationships between ideas
@@ -163,19 +150,9 @@ def build_crew(callbacks=None):
 
     report_task = Task(
         description="""
-        Write the final research report on:
+        Write the final research report on: {topic}
 
-        {topic}
-
-        Use the verified research and analysis below.
-
-        Verified research:
-        {fact_check_task}
-
-        Research analysis:
-        {analysis_task}
-
-        Create a professional report with:
+        Use the verified research and analysis provided in the context to create a professional report with:
 
         # Research Report
 
