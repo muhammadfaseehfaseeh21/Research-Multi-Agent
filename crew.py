@@ -1,6 +1,8 @@
 import os
+import litellm
 
-# Disable LiteLLM prompt caching to avoid Groq unsupported property errors
+# Explicitly disable prompt caching at LiteLLM level before CrewAI loads
+litellm.enable_prompt_caching = False
 os.environ["LITELLM_DISABLE_PROMPT_CACHING"] = "True"
 
 from crewai import Agent, Crew, LLM, Process, Task
@@ -12,7 +14,9 @@ from report_writer import create_report_writer
 from tools import get_research_tool
 
 
-MODEL_NAME = "groq/llama-3.3-70b-versatile"
+# Model configuration
+MODEL_NAME = "groq/openai/gpt-oss-120b"
+
 
 def create_groq_llm():
 
