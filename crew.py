@@ -1,9 +1,27 @@
 import os
-import litellm
 
-# Explicitly disable prompt caching at LiteLLM level before CrewAI loads
-litellm.enable_prompt_caching = False
-os.environ["LITELLM_DISABLE_PROMPT_CACHING"] = "True"
+# =========================================================
+# MONKEY PATCH: Fix CrewAI cache_breakpoint issue for Groq
+# =========================================================
+import crewai.llm
+
+_original_call = crewai.llm.LLM.call
+
+def patched_call(self, messages, *args, **kwargs):
+    if isinstance(messages, list):
+        cleaned_messages = []
+        for msg in messages:
+            if isinstance(msg, dict):
+                # Copy dict and remove cache_breakpoint key
+                msg_copy = {k: v for k, v in msg.items() if k != "cache_breakpoint"}
+                cleaned_messages.append(msg_copy)
+            else:
+                cleaned_messages.append(msg)
+        messages = cleaned_messages
+    return _original_call(self, messages, *args, **kwargs)
+
+crewai.llm.LLM.call = patched_call
+# =========================================================
 
 from crewai import Agent, Crew, LLM, Process, Task
 
@@ -14,12 +32,10 @@ from report_writer import create_report_writer
 from tools import get_research_tool
 
 
-# Model configuration
 MODEL_NAME = "groq/openai/gpt-oss-120b"
 
 
 def create_groq_llm():
-
     api_key = os.getenv("GROQ_API_KEY")
 
     if not api_key:
@@ -34,12 +50,10 @@ def create_groq_llm():
 
 
 def build_crew(callbacks=None):
-
     if callbacks is None:
         callbacks = {}
 
     llm = create_groq_llm()
-
     research_tool = get_research_tool()
 
     researcher = create_researcher(
@@ -84,7 +98,6 @@ def build_crew(callbacks=None):
 
         Return organized research notes for the fact checker.
         """,
-
         expected_output="""
         A detailed research brief containing:
         1. Main findings
@@ -93,7 +106,6 @@ def build_crew(callbacks=None):
         4. Recent information
         5. Source names or URLs
         """,
-
         agent=researcher,
     )
 
@@ -111,7 +123,6 @@ def build_crew(callbacks=None):
 
         Return a verified research brief.
         """,
-
         expected_output="""
         A fact-checked research brief containing:
         - Verified claims
@@ -119,9 +130,7 @@ def build_crew(callbacks=None):
         - Important corrections
         - Supporting sources
         """,
-
         agent=fact_checker,
-
         context=[research_task],
     )
 
@@ -139,7 +148,6 @@ def build_crew(callbacks=None):
 
         Keep the analysis evidence-based.
         """,
-
         expected_output="""
         A structured analytical brief containing:
         1. Major findings
@@ -148,9 +156,7 @@ def build_crew(callbacks=None):
         4. Implications
         5. Important limitations
         """,
-
         agent=analyst,
-
         context=[fact_check_task],
     )
 
@@ -182,7 +188,6 @@ def build_crew(callbacks=None):
         Do not present unsupported claims as facts.
         Keep the report clear and readable.
         """,
-
         expected_output="""
         A polished research report containing:
         - Executive Summary
@@ -194,9 +199,7 @@ def build_crew(callbacks=None):
         - Conclusion
         - Sources
         """,
-
         agent=report_writer,
-
         context=[fact_check_task, analysis_task],
     )
 
@@ -207,16 +210,13 @@ def build_crew(callbacks=None):
             analyst,
             report_writer,
         ],
-
         tasks=[
             research_task,
             fact_check_task,
             analysis_task,
             report_task,
         ],
-
         process=Process.sequential,
-
         verbose=True,
     )
 
