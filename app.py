@@ -1,4 +1,3 @@
-
 import os
 import streamlit as st
 from crew import build_crew
@@ -59,7 +58,7 @@ CSS = (
 st.html(CSS)
 
 # =========================================================
-# SESSION STATE
+# SESSION STATE INITIALIZATION
 # =========================================================
 
 if "report" not in st.session_state:
@@ -95,3 +94,39 @@ with st.sidebar:
     st.markdown("### ✅ Fact Checker")
     st.caption("Checks important claims and evidence.")
 
+    st.markdown("### 📝 Writer")
+    st.caption("Drafts structured analysis and insights.")
+
+    st.markdown("### 🎯 Editor")
+    st.caption("Refines final report for clarity and style.")
+
+    st.markdown("---")
+    api_key_input = st.text_input("GROQ API Key", type="password")
+    if api_key_input:
+        os.environ["GROQ_API_KEY"] = api_key_input
+
+# =========================================================
+# MAIN CONTENT AREA
+# =========================================================
+
+topic = st.text_input(
+    "Enter Research Topic:",
+    placeholder="e.g., Future of Autonomous AI Agents in Healthcare",
+)
+
+if st.button("🚀 Start Research Team", type="primary"):
+    if not topic.strip():
+        st.warning("Please enter a valid research topic.")
+    else:
+        with st.spinner("Multi-Agent team working on your topic..."):
+            try:
+                crew_instance = build_crew(topic)
+                result = crew_instance.kickoff(inputs={"topic": topic})
+                st.session_state.report = result.raw if hasattr(result, "raw") else str(result)
+                st.success("Research completed successfully!")
+            except Exception as e:
+                st.error(f"Error during execution: {str(e)}")
+
+if st.session_state.report:
+    st.markdown("### 📋 Final Research Report")
+    st.markdown(st.session_state.report)
