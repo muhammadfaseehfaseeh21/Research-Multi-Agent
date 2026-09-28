@@ -32,8 +32,7 @@ from report_writer import create_report_writer
 from tools import get_research_tool
 
 
-MODEL_NAME = "groq/llama-3.3-70b-versatile"
-
+MODEL_NAME = "openai/gpt-oss-120b"
 
 def create_groq_llm():
     api_key = os.getenv("GROQ_API_KEY")
