@@ -94,3 +94,4 @@ with st.sidebar:
         st.html(
             f"<div style='padding:.75rem 0;border-bottom:1px solid #edf0f5;'>"
             f"<div style='font-weight:800;color:#172033;'>"
+        )
