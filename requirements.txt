@@ -1,3 +1,4 @@
-streamlit==1.64.0
-crewai==1.15.22
-groq==1.7.0
+streamlit>=1.33.0
+crewai
+groq
+python-dotenv
