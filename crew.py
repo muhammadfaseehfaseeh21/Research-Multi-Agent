@@ -32,7 +32,7 @@ from report_writer import create_report_writer
 from tools import get_research_tool
 
 
-MODEL_NAME = "groq/openai/gpt-oss-120b"
+MODEL_NAME = "groq/llama-3.3-70b-versatile"
 
 
 def create_groq_llm():
