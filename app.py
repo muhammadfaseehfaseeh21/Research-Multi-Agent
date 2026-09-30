@@ -788,3 +788,24 @@ st.html(
     </div>
     """
 )
+import requests
+import streamlit as st
+
+st.divider()
+st.subheader("Groq connection test")
+
+if st.button("Test Groq connection"):
+    try:
+        r = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {st.secrets['GROQ_API_KEY']}"},
+            json={
+                "model": "openai/gpt-oss-120b",
+                "messages": [{"role": "user", "content": "hi"}],
+            },
+            timeout=30,
+        )
+        st.write("Status code:", r.status_code)
+        st.code(r.text[:500])
+    except Exception as e:
+        st.error(f"Request failed: {e}")
